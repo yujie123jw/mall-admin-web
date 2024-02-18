@@ -342,7 +342,10 @@
         <el-button type="primary" @click="handleMarkOrder">确 定</el-button>
       </span>
     </el-dialog>
-    <logistics-dialog v-model="logisticsDialogVisible"></logistics-dialog>
+    <logistics-dialog v-if="delayedValue"
+                      :visible.sync="logisticsDialogVisible"
+                      :order-info="order"
+    ></logistics-dialog>
   </div>
 </template>
 <script>
@@ -364,6 +367,15 @@
   export default {
     name: 'orderDetail',
     components: { VDistpicker, LogisticsDialog},
+    watch: {
+      logisticsDialogVisible:{
+        handler(newVal, oldVal) {
+          if (newVal === false) {
+            this.logisticsDialogVisible = newVal;
+          }
+        }
+      }
+    },
     data() {
       return {
         id: null,
@@ -378,13 +390,15 @@
         closeInfo:{note:null,id:null},
         markOrderDialogVisible:false,
         markInfo:{note:null},
-        logisticsDialogVisible:false
+        logisticsDialogVisible:false,
+        delayedValue: false
       }
     },
     created() {
       this.id = this.list = this.$route.query.id;
       getOrderDetail(this.id).then(response => {
         this.order = response.data;
+          this.delayedValue = true;
       });
     },
     filters: {
@@ -659,6 +673,8 @@
       },
       showLogisticsDialog(){
         this.logisticsDialogVisible=true;
+        this.$forceUpdate();
+        this.orderInfo=Object.assign({},this.order);
       }
     }
   }
